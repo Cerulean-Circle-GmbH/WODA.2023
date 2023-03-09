@@ -17,6 +17,8 @@ cd WODA.2023
 
 Then call ```up.sh``` or ```up.bat``` depending on your system. With ```down.sh``` or ```down.bat``` you later stop the container.
 
+The first start process might take a while to install everything. Do not detach at the first time!
+
 ****
 
 # Now login to the container
@@ -24,7 +26,7 @@ Then call ```up.sh``` or ```up.bat``` depending on your system. With ```down.sh`
 ## With Docker directly
 
 ```
-docker exec -it once.sh_container /bin/bash
+docker exec -it once-once.sh_container /bin/bash
 ```
 
 ## With ssh
