@@ -37,14 +37,16 @@ Now open another shell (e.g. in WSL on Windows or native on Mac or Linux) and ca
 ssh -o "StrictHostKeyChecking no" root@localhost -p 8022
 # password is: once
 ```
-| Remark | 
-| -------| 
-| Even with "StrictHostKeyChecking no" the fingerprint of the last running container after recreation of the container might need to be removed before login. You need this if you see: |
-| @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ |
-| @    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @ |
-| @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ |
 
-You are logged in now
+*Remark:*
+Even with "StrictHostKeyChecking no" the fingerprint of the last running container after recreation of the container might need to be removed from your ```~/.ssh/known_hosts``` before login. You need this if you see:
+```
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+```
+
+You are logged in now.
 
 ## Connect with VS Code
 * Start VS Code
