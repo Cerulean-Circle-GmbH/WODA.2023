@@ -4,6 +4,8 @@
 DOCKER_CONFIG_PREFIX=_config
 DOCKER_CONFIG_NAME=once
 DOCKER_DETACH=""
+DOCKER_SERVICE_NAME=once.sh
+DOCKER_CONTAINER_NAME=${DOCKER_SERVICE_NAME}_container
 DOCKER_IMAGE=donges/once:latest
 DOCKER_ONCE_SRC_HOME=../_var_dev
 DOCKER_OUTER_CONFIG=../_myhome
@@ -25,8 +27,8 @@ function ask_with_default {
 function writeDockerComposeFile {
     file=$1
     echo "services:" > $file
-    echo "  once.sh:" >> $file
-    echo "    container_name: ${DOCKER_CONFIG_NAME}-once.sh_container" >> $file
+    echo "  ${DOCKER_SERVICE_NAME}:" >> $file
+    echo "    container_name: ${DOCKER_CONFIG_NAME}-${DOCKER_CONTAINER_NAME}" >> $file
     echo "    image: ${DOCKER_IMAGE}" >> $file
     echo "    volumes:" >> $file
     echo "      - /var/run/docker.sock:/var/run/docker.sock" >> $file
@@ -57,6 +59,8 @@ usage() {
 
 ### MAIN ###
 
+CONFIG_NAME_ARGUMENT=""
+
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -70,7 +74,18 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         *)
-            break
+            if [[ $key =~ ^(-|[0-9]) ]]; then
+                echo "ERROR: Wrong argument: $key" >&2
+                usage
+                exit 1
+            fi
+            if [ -n "$CONFIG_NAME_ARGUMENT" ]; then
+                echo "ERROR: Wrong argument: $key (config name already given)" >&2
+                usage
+                exit 1
+            fi
+            CONFIG_NAME_ARGUMENT=$key
+            shift # past argument
             ;;
     esac
 done
@@ -80,15 +95,19 @@ base=${0##*/}
 DOCKER_COMPOSE_COMMAND=${base%.sh}
 echo "-> Use command            : $DOCKER_COMPOSE_COMMAND"
 
+# Which container runs?
+containers=`docker ps --format "{{.Names}}" | grep ${DOCKER_CONTAINER_NAME}`
+echo "Now running containers    :" $containers
+
 # Choose config
-if [ -z "$1" ]; then
+if [ -z "${CONFIG_NAME_ARGUMENT}" ]; then
     configs=`ls -d $DOCKER_CONFIG_PREFIX* 2>/dev/null | sed "s;$DOCKER_CONFIG_PREFIX.;;"`
     if [ ! -z "$configs" ]; then
         echo "Available configs are     :" $configs
     fi
     DOCKER_CONFIG_NAME=$(ask_with_default "Choose avail./new config  :" "$DOCKER_CONFIG_NAME")
 else
-    DOCKER_CONFIG_NAME=$1
+    DOCKER_CONFIG_NAME=${CONFIG_NAME_ARGUMENT}
     echo "Use config                : $DOCKER_CONFIG_NAME"
 fi
 
@@ -146,6 +165,13 @@ if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
     writeDockerComposeFile "docker-compose.yml"
 
     popd > /dev/null
+fi
+
+if [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
+    SURE=$(ask_with_default "You are about to remove the container ($DOCKER_CONFIG_NAME). Are you sure (yes/no)?" "no")
+    if [ -z `echo $SURE | grep -i y` ]; then
+        exit 1
+    fi
 fi
 
 pushd $DOCKER_CONFIG_DIR > /dev/null
