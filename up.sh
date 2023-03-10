@@ -21,14 +21,6 @@ function ask_with_default {
     fi
 }
 
-# print available configs
-function printAvailableConfigs {
-    configs=`ls -d $DOCKER_CONFIG_PREFIX* 2>/dev/null | sed "s;$DOCKER_CONFIG_PREFIX.;;"`
-    if [ ! -z "$configs" ]; then
-        echo "Available configs: " $configs
-    fi
-}
-
 # Write docker compose file
 function writeDockerComposeFile {
     file=$1
@@ -66,40 +58,39 @@ usage() {
 ### MAIN ###
 
 # Parse arguments
-while getopts ":dh" opt; do
-    case ${opt} in
-        d )
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -d)
             DOCKER_DETACH="-d"
+            shift # past argument
             ;;
-        h )
+        -h)
             usage
             exit 0
             ;;
-        \? )
-            echo "Invalid option: -$OPTARG" 1>&2
-            usage
-            exit 1
+        *)
+            break
             ;;
     esac
 done
 
-shift $((OPTIND -1))
-
 # Command
-echo
 base=${0##*/}
 DOCKER_COMPOSE_COMMAND=${base%.sh}
-echo "Command: $DOCKER_COMPOSE_COMMAND"
+echo "-> Use command            : $DOCKER_COMPOSE_COMMAND"
 
 # Choose config
-echo
 if [ -z "$1" ]; then
-    printAvailableConfigs
-    DOCKER_CONFIG_NAME=$(ask_with_default "Choose a config name :" "$DOCKER_CONFIG_NAME")
+    configs=`ls -d $DOCKER_CONFIG_PREFIX* 2>/dev/null | sed "s;$DOCKER_CONFIG_PREFIX.;;"`
+    if [ ! -z "$configs" ]; then
+        echo "Available configs are     :" $configs
+    fi
+    DOCKER_CONFIG_NAME=$(ask_with_default "Choose avail./new config  :" "$DOCKER_CONFIG_NAME")
 else
     DOCKER_CONFIG_NAME=$1
+    echo "Use config                : $DOCKER_CONFIG_NAME"
 fi
-echo "Use config: $DOCKER_CONFIG_NAME"
 
 # Check if config is created
 DOCKER_CONFIG_DIR=$DOCKER_CONFIG_PREFIX.$DOCKER_CONFIG_NAME
@@ -109,8 +100,7 @@ if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
     pushd $DOCKER_CONFIG_DIR > /dev/null
 
     # Configure Docker image
-    echo
-    DOCKER_IMAGE=$(ask_with_default "Docker image :" "$DOCKER_IMAGE")
+    DOCKER_IMAGE=$(ask_with_default "Docker image              :" "$DOCKER_IMAGE")
 
 	# Evaluate source path (on Windows only provide "volume")
 	OS_TEST=`echo $OS | grep -i win`
@@ -118,28 +108,26 @@ if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
 		if [ ! -d "$DOCKER_ONCE_SRC_HOME" ] && [ -d "/var/dev" ]; then
 			DOCKER_ONCE_SRC_HOME=/var/dev
 		fi
-		echo
-		echo "Relative paths need to be relative to: `pwd`"
+		echo "Relative paths need to    : `pwd`"
 		echo "Type 'volume' if you want to use a docker volume"
-		DOCKER_ONCE_SRC_HOME=$(ask_with_default "EAMD.ucp source path :" "$DOCKER_ONCE_SRC_HOME")
+		DOCKER_ONCE_SRC_HOME=$(ask_with_default "EAMD.ucp source path      :" "$DOCKER_ONCE_SRC_HOME")
 	else
-		echo "On Windows you can only use a volume for the EAMD.ucp source code"
+		echo "EAMD.ucp source path      : volume (only option on Windows)"
 		DOCKER_ONCE_SRC_HOME="volume"
 	fi
 
     # Evaluate home
-    echo
-    echo "$DOCKER_OUTER_CONFIG, $HOME ?"
+    echo "Possible config sources   :" $DOCKER_OUTER_CONFIG $HOME
     if [ ! -d "$DOCKER_OUTER_CONFIG" ] && [ -d "$HOME/.ssh" ]; then
         DOCKER_OUTER_CONFIG=$HOME
     fi
-    DOCKER_OUTER_CONFIG=$(ask_with_default "Home of git and ssh config to import from :" "$DOCKER_OUTER_CONFIG")
+    DOCKER_OUTER_CONFIG=$(ask_with_default "Import Git/SSH config from:" "$DOCKER_OUTER_CONFIG")
 
     # Create .gitconfig
     if [ ! -f $DOCKER_OUTER_CONFIG/.gitconfig ]; then
         mkdir -p $DOCKER_OUTER_CONFIG
-        NAME=$(ask_with_default "Your name for .gitconfig :" "")
-        MAIL=$(ask_with_default "Your email for .gitconfig :" "")
+        NAME=$(ask_with_default "Your full name  (for Git) :" "")
+        MAIL=$(ask_with_default "Your full email (for Git) :" "")
         cat ../gitconfig.template | sed "s;##NAME##;$NAME;" | sed "s;##MAIL##;$MAIL;" > $DOCKER_OUTER_CONFIG/.gitconfig
     fi
 
@@ -150,10 +138,9 @@ if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
     fi
 
     # Collect ports
-    echo
-    DOCKER_HTTP_PORT=$(ask_with_default "HTTP port :" "$DOCKER_HTTP_PORT")
-    DOCKER_HTTPS_PORT=$(ask_with_default "HTTPS port :" "$DOCKER_HTTPS_PORT")
-    DOCKER_SSH_PORT=$(ask_with_default "SSH port :" "$DOCKER_SSH_PORT")
+    DOCKER_HTTP_PORT=$(ask_with_default "HTTP port                 :" "$DOCKER_HTTP_PORT")
+    DOCKER_HTTPS_PORT=$(ask_with_default "HTTPS port                :" "$DOCKER_HTTPS_PORT")
+    DOCKER_SSH_PORT=$(ask_with_default "SSH   port                :" "$DOCKER_SSH_PORT")
 
     # Create docker-compose.yml
     writeDockerComposeFile "docker-compose.yml"

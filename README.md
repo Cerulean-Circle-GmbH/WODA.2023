@@ -6,10 +6,8 @@ You already installed:
 * Git
 * Docker
 * Bash (e.g. Git-Bash on Windows)
-
-Optional:
+* SSH
 * Visual Studio Code
-* ssh
 And the commands are in the ```PATH```.
 
 ## Install
