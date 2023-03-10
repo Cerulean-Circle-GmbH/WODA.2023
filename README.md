@@ -101,6 +101,10 @@ The git (```.gitconfig```) and ssh configuration (```.ssh/id_rsa*```) inside the
 * If there is configuration in $HOME resp. %USERPROFILE% I take
 * If not I create it in WODA.2023/_myhome
 
+If you didn’t have all the files (.ssh…, .gitconfig…) before the first start (=creation of the container) you can delete the container (or ```down.sh```) and recreate it with the same command.
+
+Attention: All changes in the file system are gone, except in /var/dev because it is in your volume or your host.
+
 # Policy for the location of the EAMD.ucp code
 The source code for EAMD.ucp is stored either in a docker volume (necessary on Windows!) or on your local system. If the repository doesn't exist at startup, it will be downloaded.
 
