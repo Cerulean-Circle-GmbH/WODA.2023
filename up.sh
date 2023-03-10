@@ -21,6 +21,14 @@ function ask_with_default {
     fi
 }
 
+# print available configs
+function printAvailableConfigs {
+    configs=`ls -d $DOCKER_CONFIG_PREFIX* 2>/dev/null | sed "s;$DOCKER_CONFIG_PREFIX.;;"`
+    if [ ! -z "$configs" ]; then
+        echo "Available configs: " $configs
+    fi
+}
+
 # Write docker compose file
 function writeDockerComposeFile {
     file=$1
@@ -77,12 +85,16 @@ done
 
 shift $((OPTIND -1))
 
+# Command
+echo
+base=${0##*/}
+DOCKER_COMPOSE_COMMAND=${base%.sh}
+echo "Command: $DOCKER_COMPOSE_COMMAND"
+
 # Choose config
+echo
 if [ -z "$1" ]; then
-    configs=`ls -d $DOCKER_CONFIG_PREFIX* 2>/dev/null | sed "s;$DOCKER_CONFIG_PREFIX.;;"`
-    if [ ! -z "$configs" ]; then
-        echo "Available configs: " $configs
-    fi
+    printAvailableConfigs
     DOCKER_CONFIG_NAME=$(ask_with_default "Choose a config name :" "$DOCKER_CONFIG_NAME")
 else
     DOCKER_CONFIG_NAME=$1
@@ -95,17 +107,25 @@ DOCKER_COMPOSE_FILE=$DOCKER_CONFIG_DIR/docker-compose.yml
 if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
     mkdir -p $DOCKER_CONFIG_DIR
     pushd $DOCKER_CONFIG_DIR > /dev/null
+
+    # Configure Docker image
     echo
     DOCKER_IMAGE=$(ask_with_default "Docker image :" "$DOCKER_IMAGE")
 
-    # Evaluate source path
-    if [ ! -d "$DOCKER_ONCE_SRC_HOME" ] && [ -d "/var/dev" ]; then
-        DOCKER_ONCE_SRC_HOME=/var/dev
-    fi
-    echo
-    echo "Relative paths need to be relative to: `pwd`"
-    echo "Type 'volume' if you want to use a docker volume"
-    DOCKER_ONCE_SRC_HOME=$(ask_with_default "EAMD.ucp source path :" "$DOCKER_ONCE_SRC_HOME")
+	# Evaluate source path (on Windows only provide "volume")
+	OS_TEST=`echo $OS | grep -i win`
+	if [ -z "$OS_TEST" ]; then
+		if [ ! -d "$DOCKER_ONCE_SRC_HOME" ] && [ -d "/var/dev" ]; then
+			DOCKER_ONCE_SRC_HOME=/var/dev
+		fi
+		echo
+		echo "Relative paths need to be relative to: `pwd`"
+		echo "Type 'volume' if you want to use a docker volume"
+		DOCKER_ONCE_SRC_HOME=$(ask_with_default "EAMD.ucp source path :" "$DOCKER_ONCE_SRC_HOME")
+	else
+		echo "On Windows you can only use a volume for the EAMD.ucp source code"
+		DOCKER_ONCE_SRC_HOME="volume"
+	fi
 
     # Evaluate home
     echo
@@ -142,5 +162,5 @@ if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
 fi
 
 pushd $DOCKER_CONFIG_DIR > /dev/null
-docker-compose -p $DOCKER_CONFIG_NAME up $DOCKER_DETACH
+docker-compose -p $DOCKER_CONFIG_NAME $DOCKER_COMPOSE_COMMAND $DOCKER_DETACH
 popd > /dev/null

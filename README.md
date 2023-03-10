@@ -5,6 +5,9 @@ You have Windows, Mac or Linux.
 You already installed:
 * Git
 * Docker
+* Bash (e.g. Git-Bash on Windows)
+
+Optional:
 * Visual Studio Code
 * ssh
 And the commands are in the ```PATH```.
@@ -15,7 +18,7 @@ git clone git@github.com:Cerulean-Circle-GmbH/WODA.2023.git
 cd WODA.2023
 ```
 
-Then call ```up.sh``` or ```up.bat``` depending on your system. With ```down.sh``` or ```down.bat``` you later stop the container.
+Then call ```up.sh```. With ```stop.sh``` or ```down.sh``` you later stop the container.
 
 The first start process might take a while to install everything. Do not detach at the first time!
 
