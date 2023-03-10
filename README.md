@@ -6,31 +6,31 @@ You already installed:
 * Git
 * Docker
 * Bash (e.g. Git-Bash on Windows)
-* SSH
+* SSH (e.g. Git-Bash on Windows)
 * Visual Studio Code
+
 And the commands are in the ```PATH```.
 
 ## Install
 ```
 git clone git@github.com:Cerulean-Circle-GmbH/WODA.2023.git
 cd WODA.2023
+./up.sh
 ```
 
-Then call ```up.sh```. With ```stop.sh``` or ```down.sh``` you later stop the container.
+The first starting might take a while to install everything. Do not "detach" at the first time!
 
-The first start process might take a while to install everything. Do not detach at the first time!
+With ```stop.sh``` or ```down.sh``` you later stop the container.
 
-****
+## Login to the container
 
-# Now login to the container
-
-## With Docker directly
+### With Docker directly
 
 ```
 docker exec -it once-once.sh_container /bin/bash
 ```
 
-## With ssh
+### With ssh
 Now open another shell (e.g. in WSL on Windows or native on Mac or Linux) and call:
 
 ```
