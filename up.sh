@@ -99,6 +99,10 @@ base=${0##*/}
 DOCKER_COMPOSE_COMMAND=${base%.sh}
 echo "-> Use command            : $DOCKER_COMPOSE_COMMAND"
 
+# Check git
+git fetch --prune
+git status
+
 # Which container runs?
 containers=`docker ps --format "{{.Names}}" | grep ${DOCKER_CONTAINER_NAME}`
 echo "Now running containers    :" $containers
@@ -179,5 +183,6 @@ if [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
 fi
 
 pushd $DOCKER_CONFIG_DIR > /dev/null
+docker-compose -p $DOCKER_CONFIG_NAME pull
 docker-compose -p $DOCKER_CONFIG_NAME $DOCKER_COMPOSE_COMMAND $DOCKER_DETACH
 popd > /dev/null
