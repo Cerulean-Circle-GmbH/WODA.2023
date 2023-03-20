@@ -49,9 +49,8 @@ function writeDockerComposeFile {
         echo "  once-development:" >> $file
     fi
     echo "networks:" >> $file
-    echo "  default:" >> $file
-    echo "    external:" >> $file
-    echo "      name: once-woda-network" >> $file
+    echo "  external: true" >> $file
+    echo "  name: once-woda-network" >> $file
 }
 
 # Usage
