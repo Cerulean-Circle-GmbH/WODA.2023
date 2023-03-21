@@ -35,9 +35,11 @@ function writeDockerComposeFile {
     echo "      - /run/snapd.socket:/run/snapd.socket" >> $file
     if [[ "$DOCKER_ONCE_SRC_HOME" == "volume" ]]; then
         echo "      - once-development:/var/dev" >> $file
+        #echo "      - once-development:/home/shared" >> $file
     else
         mkdir -p $DOCKER_ONCE_SRC_HOME
         echo "      - ${DOCKER_ONCE_SRC_HOME}:/var/dev" >> $file
+        #echo "      - ${DOCKER_ONCE_SRC_HOME}:/home/shared" >> $file
     fi
     echo "      - ${DOCKER_OUTER_CONFIG}:/outer-config" >> $file
     echo "    ports:" >> $file
@@ -49,26 +51,61 @@ function writeDockerComposeFile {
         echo "  once-development:" >> $file
     fi
     echo "networks:" >> $file
-    echo "  external: true" >> $file
-    echo "  name: once-woda-network" >> $file
+    echo "  default:" >> $file
+    echo "    external: true" >> $file
+    echo "    name: once-woda-network" >> $file
 }
 
 # Usage
 usage() {
-    echo "Usage: $0 [-d] [-h] [<config-name>]"
-    echo "  -d: Set detach mode"
-    echo "  -h: Show usage information"
+    if [[ "$DOCKER_COMPOSE_COMMAND" == "woda" ]]; then
+        echo "Usage: $0 (up|start|stop|down) [-d] [-h] [<config-name>]"
+        echo "  up|start|stop|down : Commands for docker-compose"
+        echo "               up    : Builds, (re)creates, starts, and attaches to containers for a service."
+        echo "               start : Starts existing containers for a service."
+        echo "               stop  : Stops running containers without removing them."
+        echo "               down  : Stops containers and removes containers, networks, volumes, and images created by up."
+        echo "  -d                 : Set detach mode (only for up)"
+    elif [[ "$DOCKER_COMPOSE_COMMAND" == "up" ]]; then
+        echo "Usage: $0 [-d] [-h] [<config-name>]    -    Builds, (re)creates, starts, and attaches to containers for a service."
+        echo "  -d                 : Set detach mode (only for up)"
+    elif [[ "$DOCKER_COMPOSE_COMMAND" == "start" ]]; then
+        echo "Usage: $0 [-h] [<config-name>]    -    Starts existing containers for a service."
+    elif [[ "$DOCKER_COMPOSE_COMMAND" == "stop" ]]; then
+        echo "Usage: $0 [-h] [<config-name>]    -    Stops running containers without removing them."
+    elif [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
+        echo "Usage: $0 [-h] [<config-name>]    -    Stops containers and removes containers, networks, volumes, and images created by up."
+    fi
+    echo "  -h                 : Show usage information"
+    echo "  <config-name>      : Name of a config you can choose (default:once)"
 }
 
 ### MAIN ###
-
 CONFIG_NAME_ARGUMENT=""
+
+# Command
+base=${0##*/}
+DOCKER_COMPOSE_COMMAND=${base%}
+if [[ "$DOCKER_COMPOSE_COMMAND" == "woda" ]]; then
+    if [ -z "$1" ]; then
+        usage
+        exit 1
+    else
+        DOCKER_COMPOSE_COMMAND=$1
+        shift
+    fi
+fi
+echo "-> Use command            : $DOCKER_COMPOSE_COMMAND"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
         -d)
+            if [[ "$DOCKER_COMPOSE_COMMAND" != "up" ]]; then
+                usage
+                exit 1
+            fi
             DOCKER_DETACH="-d"
             shift # past argument
             ;;
@@ -92,11 +129,6 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-
-# Command
-base=${0##*/}
-DOCKER_COMPOSE_COMMAND=${base%.sh}
-echo "-> Use command            : $DOCKER_COMPOSE_COMMAND"
 
 # Check git
 git fetch --prune
@@ -182,6 +214,8 @@ if [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
 fi
 
 pushd $DOCKER_CONFIG_DIR > /dev/null
-docker-compose -p $DOCKER_CONFIG_NAME pull
+if [[ "$DOCKER_COMPOSE_COMMAND" == "up" ]]; then
+    docker-compose -p $DOCKER_CONFIG_NAME pull
+fi
 docker-compose -p $DOCKER_CONFIG_NAME $DOCKER_COMPOSE_COMMAND $DOCKER_DETACH
 popd > /dev/null

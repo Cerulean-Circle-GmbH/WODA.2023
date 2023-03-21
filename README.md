@@ -15,12 +15,22 @@ And the commands are in the ```PATH```.
 ```
 git clone git@github.com:Cerulean-Circle-GmbH/WODA.2023.git
 cd WODA.2023
-./up.sh
+./up
 ```
 
 The first starting might take a while to install everything. Do not "detach" at the first time!
 
-With ```stop.sh``` or ```down.sh``` you later stop the container.
+## Commands
+
+The following commands work:
+* ```up```    : Builds, (re)creates, starts, and attaches to containers for a service.
+* ```start``` : Starts existing containers for a service
+* ```stop```  : Stops running containers without removing them
+* ```down```  : Stops containers and removes containers, networks, volumes, and images created by up.
+
+Each command can also be used with: ```woda <cmd>```.
+
+Call ```woda -h``` for help.
 
 ## Login to the container
 

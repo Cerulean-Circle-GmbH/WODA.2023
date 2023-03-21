@@ -1,0 +1,3 @@
+#!/bin/bash
+# Usually this is a link but would not work on a windows file system
+source `dirname $0`/woda
