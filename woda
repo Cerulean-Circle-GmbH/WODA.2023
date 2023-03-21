@@ -8,6 +8,7 @@ DOCKER_SERVICE_NAME=once.sh
 DOCKER_CONTAINER_NAME=${DOCKER_SERVICE_NAME}_container
 DOCKER_IMAGE=donges/once:latest
 DOCKER_ONCE_SRC_HOME=../_var_dev
+DOCKER_ONCE_VOLUME_NAME=once-development
 DOCKER_OUTER_CONFIG=../_myhome
 DOCKER_HTTP_PORT=8080
 DOCKER_HTTPS_PORT=8443
@@ -34,8 +35,8 @@ function writeDockerComposeFile {
     echo "      - /var/run/docker.sock:/var/run/docker.sock" >> $file
     echo "      - /run/snapd.socket:/run/snapd.socket" >> $file
     if [[ "$DOCKER_ONCE_SRC_HOME" == "volume" ]]; then
-        echo "      - once-development:/var/dev" >> $file
-        #echo "      - once-development:/home/shared" >> $file
+        echo "      - ${DOCKER_ONCE_VOLUME_NAME}:/var/dev" >> $file
+        #echo "      - ${DOCKER_ONCE_VOLUME_NAME}:/home/shared" >> $file
     else
         mkdir -p $DOCKER_ONCE_SRC_HOME
         echo "      - ${DOCKER_ONCE_SRC_HOME}:/var/dev" >> $file
@@ -48,7 +49,7 @@ function writeDockerComposeFile {
     echo "      - '${DOCKER_SSH_PORT}:22'" >> $file
     if [[ "$DOCKER_ONCE_SRC_HOME" == "volume" ]]; then
         echo "volumes:" >> $file
-        echo "  once-development:" >> $file
+        echo "  ${DOCKER_ONCE_VOLUME_NAME}:" >> $file
     fi
     echo "networks:" >> $file
     echo "  default:" >> $file
@@ -173,6 +174,11 @@ if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
 		echo "EAMD.ucp source path      : volume (only option on Windows)"
 		DOCKER_ONCE_SRC_HOME="volume"
 	fi
+
+    # Get volume name
+    if [[ "$DOCKER_ONCE_SRC_HOME" == "volume" ]]; then
+		DOCKER_ONCE_VOLUME_NAME=$(ask_with_default "Volume name               :" "$DOCKER_ONCE_VOLUME_NAME")
+    fi
 
     # Evaluate home
     echo "Possible config sources   :" $DOCKER_OUTER_CONFIG $HOME
