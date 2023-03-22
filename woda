@@ -47,6 +47,9 @@ function writeDockerComposeFile {
     echo "      - '${DOCKER_HTTP_PORT}:8080'" >> $file
     echo "      - '${DOCKER_HTTPS_PORT}:8443'" >> $file
     echo "      - '${DOCKER_SSH_PORT}:22'" >> $file
+    echo "    environment:" >> $file
+    echo "      ONCE_DOCKER_HTTP_PORT: ${DOCKER_HTTP_PORT}" >> $file
+    echo "      ONCE_DOCKER_HTTPS_PORT: ${DOCKER_HTTPS_PORT}" >> $file
     if [[ "$DOCKER_ONCE_SRC_HOME" == "volume" ]]; then
         echo "volumes:" >> $file
         echo "  ${DOCKER_ONCE_VOLUME_NAME}:" >> $file
