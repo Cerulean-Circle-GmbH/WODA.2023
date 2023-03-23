@@ -215,7 +215,12 @@ if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
     popd > /dev/null
 fi
 
-if [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
+if [[ "$DOCKER_COMPOSE_COMMAND" == "up" ]]; then
+    SURE=$(ask_with_default "You are about to (re)create and start the container ($DOCKER_CONFIG_NAME). Are you sure (yes/no)?" "no")
+    if [ -z `echo $SURE | grep -i y` ]; then
+        exit 1
+    fi
+elif [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
     SURE=$(ask_with_default "You are about to remove the container ($DOCKER_CONFIG_NAME). Are you sure (yes/no)?" "no")
     if [ -z `echo $SURE | grep -i y` ]; then
         exit 1
