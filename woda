@@ -56,7 +56,7 @@ function writeDockerComposeFile {
     fi
     echo "networks:" >> $file
     echo "  default:" >> $file
-    echo "    external: true" >> $file
+    echo "    external: false" >> $file
     echo "    name: once-woda-network" >> $file
 }
 
