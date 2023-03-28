@@ -7,7 +7,7 @@ You already installed:
 * Docker
 * Bash (e.g. Git-Bash on Windows)
 * SSH (e.g. Git-Bash on Windows)
-* Visual Studio Code
+* Visual Studio Code -> recommended extensions: WSL, Remote Development (=Dev Containers+Remote SSH+Remote Explorer), Bash IDE, GitLens
 
 And the commands are in the ```PATH```.
 
