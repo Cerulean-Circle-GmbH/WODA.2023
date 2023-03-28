@@ -63,22 +63,25 @@ function writeDockerComposeFile {
 # Usage
 usage() {
     if [[ "$DOCKER_COMPOSE_COMMAND" == "woda" ]]; then
-        echo "Usage: $0 (up|start|stop|down) [-d] [-h] [<config-name>]"
+        echo "Usage: $0 (up|start|stop|down) [-d] [-y] [-h] [<config-name>]"
         echo "  up|start|stop|down : Commands for docker-compose"
         echo "               up    : Builds, (re)creates, starts, and attaches to containers for a service."
         echo "               start : Starts existing containers for a service."
         echo "               stop  : Stops running containers without removing them."
         echo "               down  : Stops containers and removes containers, networks, volumes, and images created by up."
         echo "  -d                 : Set detach mode (only for up)"
+        echo "  -y                 : Say yes to interactive questions"
     elif [[ "$DOCKER_COMPOSE_COMMAND" == "up" ]]; then
-        echo "Usage: $0 [-d] [-h] [<config-name>]    -    Builds, (re)creates, starts, and attaches to containers for a service."
+        echo "Usage: $0 [-d] [-y] [-h] [<config-name>]    -    Builds, (re)creates, starts, and attaches to containers for a service."
         echo "  -d                 : Set detach mode (only for up)"
+        echo "  -y                 : Say yes to interactive questions"
     elif [[ "$DOCKER_COMPOSE_COMMAND" == "start" ]]; then
         echo "Usage: $0 [-h] [<config-name>]    -    Starts existing containers for a service."
     elif [[ "$DOCKER_COMPOSE_COMMAND" == "stop" ]]; then
         echo "Usage: $0 [-h] [<config-name>]    -    Stops running containers without removing them."
     elif [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
-        echo "Usage: $0 [-h] [<config-name>]    -    Stops containers and removes containers, networks, volumes, and images created by up."
+        echo "Usage: $0 [-y] [-h] [<config-name>]    -    Stops containers and removes containers, networks, volumes, and images created by up."
+        echo "  -y                 : Say yes to interactive questions"
     fi
     echo "  -h                 : Show usage information"
     echo "  <config-name>      : Name of a config you can choose (default:once)"
@@ -101,10 +104,17 @@ if [[ "$DOCKER_COMPOSE_COMMAND" == "woda" ]]; then
 fi
 echo "-> Use command            : $DOCKER_COMPOSE_COMMAND"
 
+# Yes?
+sayYes=false
+
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
+        -y)
+            sayYes=true
+            shift # past argument
+            ;;
         -d)
             if [[ "$DOCKER_COMPOSE_COMMAND" != "up" ]]; then
                 usage
@@ -215,15 +225,17 @@ if [ ! -d $DOCKER_CONFIG_DIR ] || [ ! -f $DOCKER_COMPOSE_FILE ]; then
     popd > /dev/null
 fi
 
-if [[ "$DOCKER_COMPOSE_COMMAND" == "up" ]]; then
-    SURE=$(ask_with_default "You are about to (re)create and start the container ($DOCKER_CONFIG_NAME). Are you sure (yes/no)?" "no")
-    if [ -z `echo $SURE | grep -i y` ]; then
-        exit 1
-    fi
-elif [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
-    SURE=$(ask_with_default "You are about to remove the container ($DOCKER_CONFIG_NAME). Are you sure (yes/no)?" "no")
-    if [ -z `echo $SURE | grep -i y` ]; then
-        exit 1
+if [ "$sayYes" == false ]; then
+    if [[ "$DOCKER_COMPOSE_COMMAND" == "up" ]]; then
+        SURE=$(ask_with_default "You are about to (re)create and start the container ($DOCKER_CONFIG_NAME). Are you sure (yes/no)?" "no")
+        if [ -z `echo $SURE | grep -i y` ]; then
+            exit 1
+        fi
+    elif [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
+        SURE=$(ask_with_default "You are about to remove the container ($DOCKER_CONFIG_NAME). Are you sure (yes/no)?" "no")
+        if [ -z `echo $SURE | grep -i y` ]; then
+            exit 1
+        fi
     fi
 fi
 
