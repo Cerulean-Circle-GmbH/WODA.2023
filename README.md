@@ -11,6 +11,10 @@ You already installed:
 
 And the commands are in the ```PATH```.
 
+* You know where your ssh keys are (ideally they are in your {homedir}/.ssh)
+* You have a working Github.com account with your ssh public key added
+* You have a working bitbucket.org account with your ssh public key added
+
 ## Install
 ```
 git clone git@github.com:Cerulean-Circle-GmbH/WODA.2023.git

@@ -63,7 +63,7 @@ function writeDockerComposeFile {
 # Usage
 usage() {
     if [[ "$DOCKER_COMPOSE_COMMAND" == "woda" ]]; then
-        echo "Usage: $0 (up|start|stop|down) [-d] [-y] [-h] [<config-name>]"
+        echo "Usage: woda (up|start|stop|down) [-d] [-y] [-h] [<config-name>]"
         echo "  up|start|stop|down : Commands for docker-compose"
         echo "               up    : Builds, (re)creates, starts, and attaches to containers for a service."
         echo "               start : Starts existing containers for a service."
@@ -72,15 +72,15 @@ usage() {
         echo "  -d                 : Set detach mode (only for up)"
         echo "  -y                 : Say yes to interactive questions"
     elif [[ "$DOCKER_COMPOSE_COMMAND" == "up" ]]; then
-        echo "Usage: $0 [-d] [-y] [-h] [<config-name>]    -    Builds, (re)creates, starts, and attaches to containers for a service."
+        echo "Usage: up [-d] [-y] [-h] [<config-name>]    -    Builds, (re)creates, starts, and attaches to containers for a service."
         echo "  -d                 : Set detach mode (only for up)"
         echo "  -y                 : Say yes to interactive questions"
     elif [[ "$DOCKER_COMPOSE_COMMAND" == "start" ]]; then
-        echo "Usage: $0 [-h] [<config-name>]    -    Starts existing containers for a service."
+        echo "Usage: start [-h] [<config-name>]    -    Starts existing containers for a service."
     elif [[ "$DOCKER_COMPOSE_COMMAND" == "stop" ]]; then
-        echo "Usage: $0 [-h] [<config-name>]    -    Stops running containers without removing them."
+        echo "Usage: stop [-h] [<config-name>]    -    Stops running containers without removing them."
     elif [[ "$DOCKER_COMPOSE_COMMAND" == "down" ]]; then
-        echo "Usage: $0 [-y] [-h] [<config-name>]    -    Stops containers and removes containers, networks, volumes, and images created by up."
+        echo "Usage: down [-y] [-h] [<config-name>]    -    Stops containers and removes containers, networks, volumes, and images created by up."
         echo "  -y                 : Say yes to interactive questions"
     fi
     echo "  -h                 : Show usage information"
@@ -98,8 +98,23 @@ if [[ "$DOCKER_COMPOSE_COMMAND" == "woda" ]]; then
         usage
         exit 1
     else
-        DOCKER_COMPOSE_COMMAND=$1
-        shift
+        commands=("up" "start" "stop" "down")
+        match_found=false
+        for c in "${commands[@]}"
+        do
+            if [ "$c" == "$1" ]
+            then
+                DOCKER_COMPOSE_COMMAND=$1
+                match_found=true
+                shift
+                break
+            fi
+        done
+        if [ "$match_found" == false ]
+        then
+            usage
+            exit 1
+        fi
     fi
 fi
 echo "-> Use command            : $DOCKER_COMPOSE_COMMAND"
